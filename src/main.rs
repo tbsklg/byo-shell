@@ -11,8 +11,13 @@ fn main() {
         let mut input = String::new();
         stdin.read_line(&mut input).unwrap();
 
-        match input.trim() {
-            "exit 0" => std::process::exit(0),
+        let mut command = input.split_whitespace();
+
+        let head = command.next();
+        let tail = command.collect::<Vec<&str>>().join(" ");
+        match head {
+            Some("exit") => std::process::exit(0),
+            Some("echo") => println!("{}", tail),
             _ => println!("{}: command not found", input.trim()),
         }
     }
