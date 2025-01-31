@@ -18,6 +18,12 @@ fn main() {
         match head {
             Some("exit") => std::process::exit(0),
             Some("echo") => println!("{}", tail),
+            Some("type") => {
+                match tail.as_str() {
+                    "echo" | "exit" | "type" => println!("{tail} is a shell builtin"),
+                    _ => println!("{tail}: not found"),
+                }
+            }
             _ => println!("{}: command not found", input.trim()),
         }
     }
