@@ -12,7 +12,7 @@ fn main() {
         stdin.read_line(&mut input).unwrap();
 
         match input.trim() {
-            "exit 0" => break,
+            "exit 0" => std::process::exit(0),
             _ => println!("{}: command not found", input.trim()),
         }
     }
