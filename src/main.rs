@@ -1,8 +1,10 @@
+use pathsearch::find_executable_in_path;
 #[allow(unused_imports)]
 use std::io::{self, Write};
 
 fn main() {
     let stdin = io::stdin();
+    let path = env!("PATH");
 
     loop {
         print!("$ ");
@@ -18,12 +20,18 @@ fn main() {
         match head {
             Some("exit") => std::process::exit(0),
             Some("echo") => println!("{}", tail),
-            Some("type") => {
-                match tail.as_str() {
-                    "echo" | "exit" | "type" => println!("{tail} is a shell builtin"),
-                    _ => println!("{tail}: not found"),
-                }
-            }
+            Some("type") => match tail.as_str() {
+                "echo" | "exit" | "type" => println!("{tail} is a shell builtin"),
+                "ls" => println!("{path}"),
+                _ => match find_executable_in_path(&tail) {
+                    Some(exe) => {
+                        println!("{tail} is {}", exe.display());
+                    }
+                    None => {
+                        println!("{tail}: not found");
+                    }
+                },
+            },
             _ => println!("{}: command not found", input.trim()),
         }
     }
