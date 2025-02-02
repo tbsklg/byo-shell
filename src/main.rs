@@ -38,7 +38,6 @@ fn main() {
                 }
                 None => {
                     println!("{other}: command not found");
-                    break;
                 }
             },
         }
