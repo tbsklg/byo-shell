@@ -1,6 +1,7 @@
 use pathsearch::find_executable_in_path;
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use std::process::Command;
 
 fn main() {
     let stdin = io::stdin();
@@ -16,21 +17,32 @@ fn main() {
         let mut command = input.split_whitespace();
 
         let head = command.next();
-        let tail = command.collect::<Vec<&str>>().join(" ");
+
+        let tail = command.collect::<Vec<&str>>();
+        let args = tail.join(" ");
         match head {
             Some("exit") => std::process::exit(0),
-            Some("echo") => println!("{}", tail),
-            Some("type") => match tail.as_str() {
-                "echo" | "exit" | "type" => println!("{tail} is a shell builtin"),
+            Some("echo") => println!("{}", tail.join(" ")),
+            Some("type") => match args.as_str() {
+                "echo" | "exit" | "type" => println!("{args} is a shell builtin"),
                 "ls" => println!("{path}"),
-                _ => match find_executable_in_path(&tail) {
+                _ => match find_executable_in_path(&args) {
                     Some(exe) => {
-                        println!("{tail} is {}", exe.display());
+                        println!("{args} is {}", exe.display());
                     }
                     None => {
-                        println!("{tail}: not found");
+                        println!("{args}: not found");
                     }
                 },
+            },
+            Some(_) => match find_executable_in_path(&args) {
+                Some(path) => {
+                    Command::new(path)
+                        .args(tail)
+                        .status()
+                        .expect("failed to execute process");
+                }
+                None => ,
             },
             _ => println!("{}: command not found", input.trim()),
         }
