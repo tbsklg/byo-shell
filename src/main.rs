@@ -1,9 +1,21 @@
+#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
+
 use std::io::{self, Write};
 use std::path::PathBuf;
 
+fn exec_in_path(paths: &Vec<&str>, exec_name: &str) -> Option<PathBuf> {
+    for path in paths {
+        let entry = PathBuf::from(path).join(exec_name);
+        if entry.exists() {
+            return Some(entry);
+        }
+    }
+    None
+}
+
 fn main() {
     let path = std::env::var("PATH").expect("PATH variable not set");
-    let paths = path.split(":").collect::<Vec<&str>>();
+    let paths = path.split(':').collect::<Vec<&str>>();
     let stdin = io::stdin();
 
     loop {
@@ -41,15 +53,5 @@ fn main() {
                 }
             },
         }
-    }
-
-    fn exec_in_path(paths: &Vec<&str>, exec_name: &str) -> Option<PathBuf> {
-        for path in paths.iter() {
-            let entry = PathBuf::from(path).join(exec_name);
-            if entry.exists() {
-                return Some(entry);
-            }
-        }
-        None
     }
 }
