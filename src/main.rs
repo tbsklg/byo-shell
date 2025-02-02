@@ -42,7 +42,7 @@ fn main() {
                         .status()
                         .expect("failed to execute process");
                 }
-                None => ,
+                None => todo!(),
             },
             _ => println!("{}: command not found", input.trim()),
         }
