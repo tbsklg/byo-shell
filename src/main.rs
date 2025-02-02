@@ -2,9 +2,9 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 
 fn main() {
+    let path = std::env::var("PATH").expect("PATH variable not set");
+    let paths = path.split(":").collect::<Vec<&str>>();
     let stdin = io::stdin();
-    let path = env!("PATH");
-    let paths = path.split(":").collect::<Vec<_>>();
 
     loop {
         print!("$ ");
@@ -30,12 +30,11 @@ fn main() {
                 },
             },
             other => match exec_in_path(&paths, cmd) {
-                Some(path) => {
-                    let proc = std::process::Command::new(path)
+                Some(_) => {
+                    std::process::Command::new(cmd)
                         .args(args)
-                        .output()
-                        .unwrap();
-                    io::stdout().write_all(&proc.stdout).unwrap();
+                        .status()
+                        .expect("failed to execute process");
                 }
                 None => {
                     println!("{other}: command not found");
