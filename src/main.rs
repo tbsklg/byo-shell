@@ -24,7 +24,7 @@ fn main() {
             "type" => match args.join(" ").as_str() {
                 "echo" | "exit" | "type" => println!("{} is a shell builtin", args.join(" ")),
                 "ls" => println!("{path}"),
-                _ => match exec_in_path(&paths, cmd) {
+                other => match exec_in_path(&paths, other) {
                     Some(entry) => println!("{} is {}", args[0], entry.display()),
                     None => println!("{}: not found", args[0]),
                 },
