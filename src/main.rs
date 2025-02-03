@@ -1,5 +1,6 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 
+use std::env;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
@@ -34,13 +35,16 @@ fn main() {
             "exit" => std::process::exit(0),
             "echo" => println!("{}", args.join(" ")),
             "type" => match args.join(" ").as_str() {
-                "echo" | "exit" | "type" => println!("{} is a shell builtin", args.join(" ")),
+                "echo" | "exit" | "type" | "pwd" => {
+                    println!("{} is a shell builtin", args.join(" "))
+                }
                 "ls" => println!("{path}"),
                 other => match exec_in_path(&paths, other) {
                     Some(entry) => println!("{} is {}", args[0], entry.display()),
                     None => println!("{}: not found", args[0]),
                 },
             },
+            "pwd" => println!("{}", env::current_dir().unwrap().display()),
             other => match exec_in_path(&paths, cmd) {
                 Some(_) => {
                     std::process::Command::new(cmd)
