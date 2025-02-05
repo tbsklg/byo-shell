@@ -13,6 +13,7 @@ enum Command {
     Type,
     Pwd,
     Ls,
+    Cd,
     Program(String),
 }
 
@@ -24,6 +25,7 @@ impl From<&str> for Command {
             "type" => Self::Type,
             "pwd" => Self::Pwd,
             "ls" => Self::Ls,
+            "cd" => Self::Cd,
             other => Self::Program(other.to_string()),
         }
     }
@@ -37,6 +39,7 @@ impl std::fmt::Display for Command {
             Self::Type => write!(f, "type"),
             Self::Pwd => write!(f, "pwd"),
             Self::Ls => write!(f, "ls"),
+            Self::Cd => write!(f, "cd"),
             Self::Program(name) => write!(f, "{name}"),
         }
     }
@@ -50,7 +53,7 @@ struct Shell {
 impl From<&str> for Shell {
     fn from(path: &str) -> Self {
         Self {
-            builtins: vec![Command::Echo, Command::Exit, Command::Pwd],
+            builtins: vec![Command::Echo, Command::Exit, Command::Pwd, Command::Cd],
             paths: path.split(':').map(String::from).collect(),
         }
     }
@@ -72,7 +75,7 @@ impl Shell {
             Command::Type => {
                 if args.is_empty() {
                     eprintln!("type: missing argument");
-                    return Ok(())
+                    return Ok(());
                 }
                 let arg_cmd = Command::from(args[0].as_str());
                 if self.builtins.contains(&arg_cmd) {
@@ -81,6 +84,11 @@ impl Shell {
                     println!("{arg_cmd} is {}", entry.display());
                 } else {
                     println!("{arg_cmd}: not found");
+                }
+            }
+            Command::Cd => {
+                if std::env::set_current_dir(Path::new(args[0].as_str())).is_err() {
+                    println!("cd: {}: No such file or directory", args[0]);
                 }
             }
             Command::Program(prog) => {
