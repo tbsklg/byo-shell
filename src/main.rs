@@ -53,7 +53,13 @@ struct Shell {
 impl From<&str> for Shell {
     fn from(path: &str) -> Self {
         Self {
-            builtins: vec![Command::Echo, Command::Exit, Command::Pwd, Command::Cd],
+            builtins: vec![
+                Command::Echo,
+                Command::Exit,
+                Command::Pwd,
+                Command::Cd,
+                Command::Type,
+            ],
             paths: path.split(':').map(String::from).collect(),
         }
     }
@@ -92,8 +98,8 @@ impl Shell {
                 }
             }
             Command::Program(prog) => {
-                if let Some(path) = self.exec_in_path(prog) {
-                    if let Err(e) = ProcessCommand::new(path).args(args).status() {
+                if let Some(_path) = self.exec_in_path(prog) {
+                    if let Err(e) = ProcessCommand::new(prog).args(args).status() {
                         eprintln!("Failed to execute {prog}: {e}");
                     }
                 } else {
