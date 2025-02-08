@@ -93,7 +93,14 @@ impl Shell {
                 }
             }
             Command::Cd => {
-                if std::env::set_current_dir(Path::new(args[0].as_str())).is_err() {
+                let path = if args[0] == "~" {
+                    env::var("HOME")
+                        .map(PathBuf::from).unwrap()
+                } else {
+                    PathBuf::from(&args[0])
+                };
+
+                if std::env::set_current_dir(path).is_err() {
                     println!("cd: {}: No such file or directory", args[0]);
                 }
             }
