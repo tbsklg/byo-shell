@@ -99,7 +99,6 @@ impl Shell {
                 } else {
                     PathBuf::from(&args[0])
                 };
-
                 if std::env::set_current_dir(path).is_err() {
                     println!("cd: {}: No such file or directory", args[0]);
                 }
