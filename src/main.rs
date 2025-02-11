@@ -98,8 +98,7 @@ impl Shell {
             }
             Command::Cd => {
                 let path = if args.chars().nth(0) == Some('~') {
-                    env::var("HOME")
-                        .map(PathBuf::from).unwrap()
+                    env::var("HOME").map(PathBuf::from).unwrap()
                 } else {
                     PathBuf::from(&args)
                 };
