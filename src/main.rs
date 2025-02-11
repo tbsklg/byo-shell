@@ -66,14 +66,18 @@ impl From<&str> for Shell {
 }
 
 impl Shell {
-    fn execute(&self, cmd: &Command, args: &[String]) -> Result<(), Error> {
+    fn execute(&self, cmd: &Command, args: &str) -> Result<(), Error> {
         match cmd {
             Command::Exit => process::exit(0),
             Command::Ls => {
                 println!("{}", self.paths.join(":"));
             }
             Command::Echo => {
-                println!("{}", args.join(" "));
+                if args.starts_with('\'') {
+                    println!("{}", args.trim_matches(|c| c == '"' || c == '\''));
+                } else {
+                    println!("{args}");
+                }
             }
             Command::Pwd => {
                 println!("{}", env::current_dir()?.display());
@@ -83,29 +87,30 @@ impl Shell {
                     eprintln!("type: missing argument");
                     return Ok(());
                 }
-                let arg_cmd = Command::from(args[0].as_str());
+                let arg_cmd = Command::from(args);
                 if self.builtins.contains(&arg_cmd) {
                     println!("{arg_cmd} is a shell builtin");
-                } else if let Some(entry) = self.exec_in_path(&args[0]) {
+                } else if let Some(entry) = self.exec_in_path(args) {
                     println!("{arg_cmd} is {}", entry.display());
                 } else {
                     println!("{arg_cmd}: not found");
                 }
             }
             Command::Cd => {
-                let path = if args[0] == "~" {
+                let path = if args.chars().nth(0) == Some('~') {
                     env::var("HOME")
                         .map(PathBuf::from).unwrap()
                 } else {
-                    PathBuf::from(&args[0])
+                    PathBuf::from(&args)
                 };
+
                 if std::env::set_current_dir(path).is_err() {
-                    println!("cd: {}: No such file or directory", args[0]);
+                    println!("cd: {args}: No such file or directory");
                 }
             }
             Command::Program(prog) => {
                 if let Some(_path) = self.exec_in_path(prog) {
-                    if let Err(e) = ProcessCommand::new(prog).args(args).status() {
+                    if let Err(e) = ProcessCommand::new(prog).args(args.split(' ')).status() {
                         eprintln!("Failed to execute {prog}: {e}");
                     }
                 } else {
@@ -143,12 +148,14 @@ fn main() -> Result<(), Error> {
             continue;
         }
 
-        let cmds: Vec<&str> = input.split_whitespace().collect();
-        if cmds.is_empty() {
+        let (cmd, args) = input.split_once(' ').unwrap_or((&input, ""));
+        if cmd.is_empty() {
             continue;
         }
-        let args: Vec<String> = cmds[1..].iter().map(ToString::to_string).collect();
-        if let Err(e) = shell.execute(&Command::from(cmds[0]), &args) {
+
+        let args = args.split_whitespace().collect::<Vec<_>>().join(" ");
+
+        if let Err(e) = shell.execute(&Command::from(cmd), args.as_str()) {
             eprintln!("Execution error: {e}");
         }
     }
