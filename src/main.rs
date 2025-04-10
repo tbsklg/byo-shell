@@ -74,7 +74,8 @@ impl Shell {
             }
             Command::Echo => {
                 if args.starts_with('\'') {
-                    println!("{}", args.trim_matches(|c| c == '"' || c == '\''));
+                    let x = args.chars().skip(1).take_while(|c| *c != '\'').collect::<String>();
+                    println!("{x}");
                 } else {
                     println!("{args}");
                 }
@@ -152,9 +153,7 @@ fn main() -> Result<(), Error> {
             continue;
         }
 
-        let args = args.split_whitespace().collect::<Vec<_>>().join(" ");
-
-        if let Err(e) = shell.execute(&Command::from(cmd), args.as_str()) {
+        if let Err(e) = shell.execute(&Command::from(cmd), args.trim_end()) {
             eprintln!("Execution error: {e}");
         }
     }
