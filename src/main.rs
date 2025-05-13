@@ -73,12 +73,40 @@ impl Shell {
                 println!("{}", self.paths.join(":"));
             }
             Command::Echo => {
-                if args.starts_with('\'') {
-                    let x = args.chars().skip(1).take_while(|c| *c != '\'').collect::<String>();
-                    println!("{x}");
-                } else {
-                    println!("{args}");
+                let mut result = Vec::new();
+                let mut chars = args.chars().peekable();
+
+                while chars.peek().is_some() {
+                    while chars.peek().is_some_and(|c| c.is_whitespace()) {
+                        chars.next();
+                    }
+
+                    let mut arg = String::new();
+
+                    if chars.peek() == Some(&'\'') {
+                        chars.next();
+                        if chars.peek() == Some(&'\'') {
+                            let c = chars.next();
+                            arg.push(c.unwrap());
+                        } else {
+                            break;
+                        }
+                    } else {
+                        while let Some(&c) = chars.peek() {
+                            if c.is_whitespace() {
+                                break;
+                            }
+                            arg.push(c);
+                            chars.next();
+                        }
+                    }
+
+                    if !arg.is_empty() {
+                        result.push(arg);
+                    }
                 }
+
+                println!("{}", result.join(" "));
             }
             Command::Pwd => {
                 println!("{}", env::current_dir()?.display());
