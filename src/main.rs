@@ -73,40 +73,7 @@ impl Shell {
                 println!("{}", self.paths.join(":"));
             }
             Command::Echo => {
-                let mut result = Vec::new();
-                let mut chars = args.chars().peekable();
-
-                while chars.peek().is_some() {
-                    while chars.peek().is_some_and(|c| c.is_whitespace()) {
-                        chars.next();
-                    }
-
-                    let mut arg = String::new();
-
-                    if chars.peek() == Some(&'\'') {
-                        chars.next();
-                        if chars.peek() == Some(&'\'') {
-                            let c = chars.next();
-                            arg.push(c.unwrap());
-                        } else {
-                            break;
-                        }
-                    } else {
-                        while let Some(&c) = chars.peek() {
-                            if c.is_whitespace() {
-                                break;
-                            }
-                            arg.push(c);
-                            chars.next();
-                        }
-                    }
-
-                    if !arg.is_empty() {
-                        result.push(arg);
-                    }
-                }
-
-                println!("{}", result.join(" "));
+                println!("{}", parse_args(args).join(" "));
             }
             Command::Pwd => {
                 println!("{}", env::current_dir()?.display());
@@ -184,5 +151,49 @@ fn main() -> Result<(), Error> {
         if let Err(e) = shell.execute(&Command::from(cmd), args.trim_end()) {
             eprintln!("Execution error: {e}");
         }
+    }
+}
+
+fn parse_args(args: &str) -> Vec<String> {
+    let mut iter = args.chars().peekable();
+    let mut result = Vec::new();
+    
+    while iter.peek().is_some() {
+        let x = iter.next().unwrap();
+        
+        if x == '\'' {
+            let mut token = String::new();
+            
+            while iter.peek().is_some_and(|x| *x != '\'') {
+                token.push(iter.next().unwrap());
+            }
+
+            iter.next();
+            
+            result.push(token);
+        } else if x == ' ' {
+            continue;
+        } else {
+            let mut token = String::new();
+            token.push(x);
+            
+            while iter.peek().is_some_and(|x| *x != ' ' && *x != '\'') {
+                token.push(iter.next().unwrap());
+            }
+            
+            result.push(token);
+        }
+    }
+    
+    result
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parse_args;
+
+    #[test]
+    fn should_parse_single_quotes() {
+        assert_eq!(vec!["abc", "def", "ghi"], parse_args("'abc' def ghi"));
     }
 }
