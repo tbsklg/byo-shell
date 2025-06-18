@@ -157,34 +157,34 @@ fn main() -> Result<(), Error> {
 fn parse_args(args: &str) -> Vec<String> {
     let mut iter = args.chars().peekable();
     let mut result = Vec::new();
-    
+
     while iter.peek().is_some() {
         let x = iter.next().unwrap();
-        
+
         if x == '\'' {
             let mut token = String::new();
-            
+
             while iter.peek().is_some_and(|x| *x != '\'') {
                 token.push(iter.next().unwrap());
             }
 
             iter.next();
-            
+
             result.push(token);
         } else if x == ' ' {
             continue;
         } else {
             let mut token = String::new();
             token.push(x);
-            
+
             while iter.peek().is_some_and(|x| *x != ' ' && *x != '\'') {
                 token.push(iter.next().unwrap());
             }
-            
+
             result.push(token);
         }
     }
-    
+
     result
 }
 
@@ -195,5 +195,9 @@ mod tests {
     #[test]
     fn should_parse_single_quotes() {
         assert_eq!(vec!["abc", "def", "ghi"], parse_args("'abc' def ghi"));
+        assert_eq!(
+            vec!["'world     test' 'example''hello'"],
+            parse_args("world     test example hello")
+        );
     }
 }
