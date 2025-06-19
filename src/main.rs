@@ -73,7 +73,7 @@ impl Shell {
                 println!("{}", self.paths.join(":"));
             }
             Command::Echo => {
-                println!("{}", parse_args(args).join(" "));
+                println!("{}", parse_args(args).join(""));
             }
             Command::Pwd => {
                 println!("{}", env::current_dir()?.display());
@@ -168,21 +168,28 @@ fn parse_args(args: &str) -> Vec<String> {
                 token.push(iter.next().unwrap());
             }
 
-            iter.next();
-
             result.push(token);
-        } else if x == ' ' {
             continue;
-        } else {
-            let mut token = String::new();
-            token.push(x);
+        }
 
-            while iter.peek().is_some_and(|x| *x != ' ' && *x != '\'') {
-                token.push(iter.next().unwrap());
+        let mut token = String::new();
+        token.push(x);
+
+        while iter.peek().is_some_and(|x| *x != '\'') {
+            let has_whitespace = iter.peek().is_some_and(|x| *x == ' ');
+
+            while iter.peek().is_some_and(|x| *x == ' ') {
+                iter.next();
             }
 
-            result.push(token);
+            if has_whitespace {
+                token.push(' ');
+            }
+
+            token.push(iter.next().unwrap());
         }
+
+        result.push(token);
     }
 
     result
@@ -194,9 +201,9 @@ mod tests {
 
     #[test]
     fn should_parse_single_quotes() {
-        assert_eq!(vec!["abc", "def", "ghi"], parse_args("'abc' def ghi"));
+        assert_eq!(vec!["abc", " def ghi"], parse_args("'abc' def ghi"));
         assert_eq!(
-            vec!["'world     test' 'example''hello'"],
+            vec!["world test example hello"],
             parse_args("world     test example hello")
         );
     }
