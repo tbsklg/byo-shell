@@ -4,7 +4,7 @@ use anyhow::{Context, Error};
 use std::env;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::{self, Command as ProcessCommand};
+use std::process::{self};
 
 #[derive(Eq, PartialEq, Debug)]
 enum Command {
@@ -105,9 +105,12 @@ impl Shell {
             }
             Command::Program(prog) => {
                 if let Some(_path) = self.exec_in_path(prog) {
-                    if let Err(e) = ProcessCommand::new(prog).args(args.split(' ')).status() {
-                        eprintln!("Failed to execute {prog}: {e}");
-                    }
+                    let mut process = std::process::Command::new(prog)
+                        .args(parse_args(args).iter().filter(|x| !x.trim().is_empty()))
+                        .spawn()
+                        .unwrap();
+
+                    let _status = process.wait().unwrap();
                 } else {
                     println!("{prog}: command not found");
                 }
@@ -205,6 +208,17 @@ mod tests {
         assert_eq!(
             vec!["world test example hello"],
             parse_args("world     test example hello")
+        );
+        assert_eq!(
+            vec![
+                "/tmp/baz/f   68",
+                " ",
+                "/tmp/baz/f   59",
+                " ",
+                "/tmp/baz/f   16",
+                ""
+            ],
+            parse_args("'/tmp/baz/f   68' '/tmp/baz/f   59' '/tmp/baz/f   16'")
         );
     }
 }
