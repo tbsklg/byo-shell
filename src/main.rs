@@ -147,11 +147,12 @@ fn main() -> Result<(), Error> {
         }
 
         let (cmd, args) = input.split_once(' ').unwrap_or((&input, ""));
+
         if cmd.is_empty() {
             continue;
         }
 
-        if let Err(e) = shell.execute(&Command::from(cmd), args.trim_end()) {
+        if let Err(e) = shell.execute(&Command::from(cmd.trim()), args.trim_end()) {
             eprintln!("Execution error: {e}");
         }
     }
